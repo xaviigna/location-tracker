@@ -16,7 +16,7 @@ const nextConfig = {
     }
     return config
   },
-  transpilePackages: ['react-leaflet'],
+  transpilePackages: ['react-leaflet', '@react-leaflet/core', 'leaflet'],
 }
 
 export default nextConfig

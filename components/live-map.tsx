@@ -26,8 +26,8 @@ const Popup = dynamic(
   { ssr: false }
 )
 
-// Import Leaflet CSS only on client side
-const Map = dynamic(() => import("./map"), {
+// Dynamically import the map component with no SSR
+const MapComponent = dynamic(() => import("./map-component"), {
   ssr: false,
   loading: () => (
     <div className="h-screen w-full flex items-center justify-center">
@@ -54,24 +54,6 @@ export function LiveMap() {
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
   const { toast } = useToast()
-  const [mapLoaded, setMapLoaded] = useState(false)
-
-  useEffect(() => {
-    // Load Leaflet CSS
-    import("leaflet/dist/leaflet.css")
-    
-    // Fix Leaflet default icon issues
-    import("leaflet").then((L) => {
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-      })
-    })
-    
-    setMapLoaded(true)
-  }, [])
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -134,7 +116,7 @@ export function LiveMap() {
     }
   }, [user, toast])
 
-  if (isLoading || !mapLoaded) {
+  if (isLoading) {
     return (
       <div className="h-screen w-full flex items-center justify-center">
         <p>Loading map...</p>
@@ -144,20 +126,7 @@ export function LiveMap() {
 
   return (
     <div className="h-screen w-full">
-      <MapContainer
-        center={position}
-        zoom={16}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={position}>
-          <Popup>Your current location</Popup>
-        </Marker>
-        <AutoCenter position={position} />
-      </MapContainer>
+      <MapComponent position={position} />
     </div>
   )
 } 
