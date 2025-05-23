@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, type FormEvent, type ChangeEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/context/auth-context"
@@ -22,10 +20,12 @@ export default function RegisterPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    console.log("Form submitted")
 
     if (password !== confirmPassword) {
+      console.log("Passwords don't match")
       toast({
         variant: "destructive",
         title: "Passwords don't match",
@@ -34,10 +34,20 @@ export default function RegisterPage() {
       return
     }
 
+    if (password.length < 6) {
+      console.log("Password too short")
+      toast({
+        variant: "destructive",
+        title: "Password too short",
+        description: "Password must be at least 6 characters long",
+      })
+      return
+    }
+
     setIsLoading(true)
+    console.log("Attempting registration with email:", email)
 
     try {
-      console.log("Attempting to register...")
       await register(email, password)
       console.log("Registration successful")
       toast({
@@ -46,7 +56,11 @@ export default function RegisterPage() {
       })
       router.push("/dashboard")
     } catch (error: any) {
-      console.error("Registration error:", error)
+      console.error("Registration error details:", {
+        message: error.message,
+        code: error.code,
+        fullError: error
+      })
       toast({
         variant: "destructive",
         title: "Registration failed",
@@ -56,6 +70,10 @@ export default function RegisterPage() {
       setIsLoading(false)
     }
   }
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)
+  const handleConfirmPasswordChange = (e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-b from-gray-50 to-gray-100">
@@ -77,7 +95,7 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 required
               />
             </div>
@@ -87,8 +105,9 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 required
+                minLength={6}
               />
             </div>
             <div className="space-y-2">
@@ -97,8 +116,9 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={handleConfirmPasswordChange}
                 required
+                minLength={6}
               />
             </div>
           </CardContent>

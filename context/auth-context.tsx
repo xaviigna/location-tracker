@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  type AuthError,
 } from "firebase/auth"
 import { auth } from "@/lib/firebase/config"
 import { deleteLocationFromDatabase } from "@/lib/firebase/database"
@@ -35,11 +36,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password)
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+    } catch (error) {
+      const authError = error as AuthError
+      throw new Error(getAuthErrorMessage(authError.code))
+    }
   }
 
   const register = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password)
+    try {
+      await createUserWithEmailAndPassword(auth, email, password)
+    } catch (error) {
+      const authError = error as AuthError
+      throw new Error(getAuthErrorMessage(authError.code))
+    }
   }
 
   const logout = async () => {
@@ -63,4 +74,23 @@ export function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
+}
+
+function getAuthErrorMessage(errorCode: string): string {
+  switch (errorCode) {
+    case "auth/email-already-in-use":
+      return "This email is already registered. Please try logging in instead."
+    case "auth/invalid-email":
+      return "Please enter a valid email address."
+    case "auth/operation-not-allowed":
+      return "Email/password accounts are not enabled. Please contact support."
+    case "auth/weak-password":
+      return "Please choose a stronger password (at least 6 characters)."
+    case "auth/network-request-failed":
+      return "Network error. Please check your internet connection."
+    case "auth/too-many-requests":
+      return "Too many attempts. Please try again later."
+    default:
+      return "An error occurred during authentication. Please try again."
+  }
 }

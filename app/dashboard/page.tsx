@@ -1,25 +1,40 @@
 "use client"
 
-import { useLocationTracking } from "@/hooks/useLocationTracking"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/auth-context"
+import { LiveMap } from "@/components/live-map"
+import { Button } from "@/components/ui/button"
+import { LogOut } from "lucide-react"
 
 export default function DashboardPage() {
-  const location = useLocationTracking()
+  const { user, logout } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login")
+    }
+  }, [user, router])
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/")
+  }
+
+  if (!user) {
+    return null
+  }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Location Tracking</h1>
-      
-      {location.error ? (
-        <div className="text-red-500">Error: {location.error}</div>
-      ) : location.latitude && location.longitude ? (
-        <div className="space-y-2">
-          <p>Latitude: {location.latitude}</p>
-          <p>Longitude: {location.longitude}</p>
-          <p className="text-sm text-gray-500">Location is being saved every 5 seconds</p>
-        </div>
-      ) : (
-        <div>Getting location...</div>
-      )}
+    <div className="min-h-screen relative">
+      <div className="absolute top-4 right-4 z-10">
+        <Button variant="outline" size="sm" onClick={handleLogout}>
+          <LogOut className="h-4 w-4 mr-2" />
+          Logout
+        </Button>
+      </div>
+      <LiveMap />
     </div>
   )
 }
