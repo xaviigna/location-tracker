@@ -1,27 +1,40 @@
+"use client"
+
 import Link from "next/link"
+import { useAuth } from "@/context/auth-context"
 import { Button } from "@/components/ui/button"
 
-export default function Home() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Location Tracker</h1>
-        <p className="text-lg text-gray-600 max-w-md">
-          A simple web application to track and record your location in real-time using Firebase.
-        </p>
-      </div>
+export default function HomePage() {
+  const { user } = useAuth()
 
-      <div className="flex flex-col space-y-4 w-full max-w-xs">
-        <Link href="/login" className="w-full">
-          <Button className="w-full" size="lg">
-            Login
-          </Button>
-        </Link>
-        <Link href="/register" className="w-full">
-          <Button variant="outline" className="w-full" size="lg">
-            Register
-          </Button>
-        </Link>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="text-center space-y-6">
+        <h1 className="text-4xl font-bold">Location Tracker</h1>
+        <p className="text-lg text-gray-600 max-w-md">
+          Track your location in real-time with our easy-to-use platform.
+        </p>
+        <div className="space-x-4">
+          {user ? (
+            <>
+              <Button asChild>
+                <Link href="/dashboard">Go to Dashboard</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/admin">Admin Dashboard</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild>
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/register">Register</Link>
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
