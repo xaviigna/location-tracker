@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/context/auth-context"
@@ -12,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { ArrowLeft } from "lucide-react"
+import { isUserAdmin } from "@/lib/firebase/admin"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -21,18 +20,33 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      await login(email, password)
-      router.push("/dashboard")
+      const { user } = await login(email, password)
+      
+      // Check if user is admin
+      const adminStatus = await isUserAdmin(user.uid)
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome back${adminStatus ? ' admin' : ''}!`,
+      })
+
+      // Redirect based on role
+      if (adminStatus) {
+        router.push("/admin")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (error: any) {
+      console.error("Login error:", error)
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: error.message || "Please check your credentials and try again",
+        description: error.message || "There was a problem logging in",
       })
     } finally {
       setIsLoading(false)
@@ -47,8 +61,8 @@ export default function LoginPage() {
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back to home
           </Link>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your email and password to access your account</CardDescription>
+          <CardTitle className="text-2xl">Welcome back</CardTitle>
+          <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -79,7 +93,7 @@ export default function LoginPage() {
               {isLoading ? "Logging in..." : "Login"}
             </Button>
             <p className="text-sm text-center text-gray-500">
-              Don&apos;t have an account?{" "}
+              Don't have an account?{" "}
               <Link href="/register" className="text-primary hover:underline">
                 Register
               </Link>
