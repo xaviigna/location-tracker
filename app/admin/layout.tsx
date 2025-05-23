@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/auth-context"
+import { Providers } from "@/components/providers"
 
 export default function AdminLayout({
   children,
@@ -23,8 +24,10 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {children}
-    </div>
+    <Providers>
+      <div className="min-h-screen bg-gray-50">
+        {children}
+      </div>
+    </Providers>
   )
 } 

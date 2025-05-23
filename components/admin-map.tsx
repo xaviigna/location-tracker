@@ -30,8 +30,8 @@ if (typeof window !== "undefined") {
 }
 
 // Dynamically import the map component with no SSR
-const Map = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
+const MapComponent = dynamic(
+  () => import("./map-with-drivers").then((mod) => mod.MapWithDrivers),
   {
     ssr: false,
     loading: () => (
@@ -43,39 +43,5 @@ const Map = dynamic(
 )
 
 export function AdminMap({ drivers }: AdminMapProps) {
-  // Calculate center based on all drivers or default to a central location
-  const center = drivers.length > 0
-    ? [
-        drivers.reduce((sum, d) => sum + d.latitude, 0) / drivers.length,
-        drivers.reduce((sum, d) => sum + d.longitude, 0) / drivers.length,
-      ] as [number, number]
-    : [0, 0] as [number, number]
-
-  return (
-    <Map
-      center={center}
-      zoom={12}
-      style={{ height: "100%", width: "100%" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {drivers.map((driver) => (
-        <Marker
-          key={driver.id}
-          position={[driver.latitude, driver.longitude]}
-        >
-          <Popup>
-            <div>
-              <p className="font-semibold">{driver.userEmail}</p>
-              <p className="text-sm text-gray-600">
-                Last update: {driver.timestamp.toLocaleTimeString()}
-              </p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </Map>
-  )
+  return <MapComponent drivers={drivers} />
 } 
