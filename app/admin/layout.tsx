@@ -4,22 +4,33 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/auth-context"
 import { Providers } from "@/components/providers"
+import { toast } from "@/components/ui/use-toast"
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!user) {
       router.push("/login")
+      return
     }
-  }, [user, router])
 
-  if (!user) {
+    if (!isAdmin) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to access the admin panel.",
+      })
+      router.push("/dashboard")
+    }
+  }, [user, isAdmin, router])
+
+  if (!user || !isAdmin) {
     return null
   }
 
